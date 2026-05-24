@@ -85,7 +85,7 @@ export default function GlobalError({
                 padding: "0.6rem 1.1rem",
                 borderRadius: 12,
                 border: "1px solid rgba(255,255,255,0.15)",
-                background: "linear-gradient(135deg,#7c5cff,#5b8cff)",
+                background: "linear-gradient(135deg,#3fb950,#58a6ff)",
                 color: "white",
                 fontWeight: 600,
                 cursor: "pointer"

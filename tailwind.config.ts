@@ -5,25 +5,41 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // GitHub dark-mode canvas
         bg: {
-          DEFAULT: "#0b0b10",
-          soft: "#11121a",
-          card: "#15161f",
-          border: "#23252f"
+          DEFAULT: "#0d1117",
+          soft: "#161b22",
+          card: "#161b22",
+          border: "#30363d",
+          mute: "#21262d"
         },
+        // GitHub blue (primary link / action)
         brand: {
-          DEFAULT: "#7c5cff",
-          soft: "#a18bff",
-          glow: "#5b3eff"
+          DEFAULT: "#58a6ff",
+          soft: "#79c0ff",
+          glow: "#1f6feb",
+          ink: "#388bfd"
         },
+        // GitHub green (the "Create / submit" action color)
+        accent: {
+          DEFAULT: "#3fb950",
+          soft: "#7ee787",
+          glow: "#238636",
+          deep: "#0e4429"
+        },
+        // GitHub text scale
         ink: {
-          DEFAULT: "#e7e8ee",
-          mute: "#a2a4b1",
-          dim: "#6b6e7c"
+          DEFAULT: "#f0f6fc",
+          mute: "#8b949e",
+          dim: "#6e7681"
         },
-        ok: "#3ecf8e",
-        warn: "#ffb454",
-        err: "#ff5e6c"
+        ok: {
+          DEFAULT: "#3fb950",
+          soft: "#7ee787",
+          deep: "#238636"
+        },
+        warn: "#d29922",
+        err: "#f85149"
       },
       fontFamily: {
         sans: [
@@ -34,10 +50,20 @@ const config: Config = {
           "Inter",
           "sans-serif"
         ],
-        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"]
+        mono: [
+          "ui-monospace",
+          "SFMono-Regular",
+          "Menlo",
+          "Monaco",
+          "Consolas",
+          "Liberation Mono",
+          "monospace"
+        ]
       },
       boxShadow: {
-        glow: "0 0 0 1px rgba(124,92,255,0.35), 0 10px 40px -10px rgba(124,92,255,0.45)"
+        glow: "0 0 0 1px rgba(88,166,255,0.35), 0 10px 40px -10px rgba(31,111,235,0.45)",
+        "glow-green":
+          "0 0 0 1px rgba(63,185,80,0.35), 0 10px 40px -10px rgba(35,134,54,0.5)"
       },
       animation: {
         "fade-in": "fadeIn 0.4s ease-out both",

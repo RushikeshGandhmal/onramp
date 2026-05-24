@@ -4,6 +4,8 @@ import { MockSearchDemo } from "@/components/MockSearchDemo";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { FaqList } from "@/components/FaqList";
 import { HeroChat } from "@/components/HeroChat";
+import { TerminalReceipt, GhLabel } from "@/components/GhPrimitives";
+import { ContribGraphClient } from "@/components/ContribGraphClient";
 
 export default function HomePage() {
   return (
@@ -27,58 +29,89 @@ export default function HomePage() {
 }
 
 /* ────────────────────────────────────────────────────────────
-   HERO — 21st.dev-inspired blue meshy background
+   HERO — GitHub-native canvas (matches AuthShell left)
    ──────────────────────────────────────────────────────────── */
 
 function Hero() {
   return (
-    <section className="relative isolate overflow-hidden">
-      {/* layered meshy background */}
-      <div className="absolute inset-0 -z-20 bg-meshy" />
-      <div className="absolute inset-0 -z-10 bg-grid opacity-50" />
-      <div className="bg-mesh-noise -z-10" />
-
-      {/* drifting orbs */}
-      <div className="orb orb-a -left-32 top-10 h-72 w-72" />
-      <div className="orb orb-b right-0 top-20 h-64 w-64" />
-      <div className="orb orb-c left-1/2 top-80 h-72 w-72" />
-
-      {/* vertical beams */}
-      <div className="absolute inset-y-0 left-[18%] -z-10">
-        <div className="beam" />
+    <section className="relative isolate overflow-hidden bg-github">
+      {/* Animated GitHub contribution-graph as the hero wallpaper.
+          Same cells/animation as the sign-in page — scaled up significantly
+          so the individual squares read clearly, masked and dimmed so the
+          headline stays crisp on top. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 overflow-hidden"
+      >
+        {/* Primary layer — cells sized to read as a contribution graph,
+            not as oversized blocks. Wider inset so cells stay small while
+            still filling the hero edge-to-edge. */}
+        <div
+          className="absolute -inset-x-[6%] top-[6%] opacity-[0.45]"
+          style={{
+            maskImage:
+              "radial-gradient(ellipse 82% 70% at 50% 45%, #000 30%, rgba(0,0,0,0.4) 65%, transparent 100%)",
+            WebkitMaskImage:
+              "radial-gradient(ellipse 82% 70% at 50% 45%, #000 30%, rgba(0,0,0,0.4) 65%, transparent 100%)"
+          }}
+        >
+          <ContribGraphClient />
+        </div>
+        {/* Secondary ambient layer along the bottom — same small cells. */}
+        <div
+          className="absolute -left-[4%] -right-[4%] bottom-[2%] opacity-[0.22]"
+          style={{
+            maskImage:
+              "linear-gradient(180deg, transparent 0%, #000 40%, #000 80%, transparent 100%)",
+            WebkitMaskImage:
+              "linear-gradient(180deg, transparent 0%, #000 40%, #000 80%, transparent 100%)"
+          }}
+        >
+          <ContribGraphClient />
+        </div>
       </div>
-      <div className="absolute inset-y-0 left-[48%] -z-10">
-        <div className="beam beam-2" />
-      </div>
-      <div className="absolute inset-y-0 left-[78%] -z-10">
-        <div className="beam beam-3" />
-      </div>
 
-      <div className="relative mx-auto max-w-3xl px-5 pt-16 sm:pt-24 pb-16 sm:pb-24 text-center animate-fade-in">
-        <Link href="#audiences" className="hero-pill mb-8 mx-auto">
-          <span className="hero-pill-dot">New</span>
-          From a sentence to the perfect issue — in 10 seconds
-          <ArrowRight />
-        </Link>
+      {/* Soft vignette so the center text stays crisp against the cells */}
+      <div
+        aria-hidden
+        className="absolute inset-0 [background:radial-gradient(ellipse_55%_45%_at_50%_38%,rgba(13,17,23,0.88),transparent_72%)]"
+      />
+      {/* horizontal scan beam */}
+      <div className="scanline-h" />
+      {/* hairline borders */}
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#30363d] to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[#30363d] to-transparent" />
+
+      <div className="relative mx-auto max-w-3xl px-5 pt-16 sm:pt-20 pb-20 sm:pb-24 text-center animate-fade-in">
+        {/* terminal receipt — replaces the old hero-pill */}
+        <div className="flex justify-center mb-7">
+          <TerminalReceipt
+            command="on-ramp"
+            args="find-issue"
+            flag='--for="you"'
+            caret
+          />
+        </div>
 
         <h1 className="text-[40px] leading-[1.04] sm:text-7xl font-semibold tracking-tight">
           Make meaningful
           <br />
-          <span className="text-gradient-blue">contributions.</span>
+          <span className="text-gradient-green">contributions.</span>
         </h1>
 
         <p className="mt-6 text-base sm:text-xl text-ink-mute max-w-2xl mx-auto leading-relaxed">
-          Spent an hour hunting for an issue you can actually solve? Type one
-          sentence. On-Ramp hands you the right open-source issue — explained
-          like a friend would. The PR is still up to you.
+          Spent an hour hunting for a{" "}
+          <GhLabel variant="good-first">good first issue</GhLabel> you can
+          actually solve? Type one sentence — On-Ramp hands back curated
+          matches with AI explanations.
         </p>
 
         <div className="mt-10">
           <HeroChat />
         </div>
 
-        <p className="mt-4 text-xs text-ink-dim">
-          Free · Sign in to search · Takes 5 seconds
+        <p className="mt-4 text-[12px] text-ink-dim font-mono">
+          <span className="text-accent">●</span> Free · Sign in with GitHub · Takes 5 seconds
         </p>
 
         {/* hero stats */}
@@ -105,12 +138,14 @@ function Stat({
     <div className="text-center">
       <div
         className={`text-2xl sm:text-4xl font-semibold tracking-tight ${
-          strike ? "text-ink-dim line-through decoration-err/60" : "text-gradient-static"
+          strike
+            ? "text-ink-dim line-through decoration-err/60"
+            : "text-gradient-green-soft"
         }`}
       >
         {value}
       </div>
-      <div className="mt-1 text-[11px] sm:text-xs uppercase tracking-wider text-ink-dim">
+      <div className="mt-1 text-[10.5px] sm:text-xs uppercase tracking-[0.16em] text-ink-dim font-mono">
         {label}
       </div>
     </div>
@@ -169,13 +204,13 @@ function TimeCompare() {
     <section className="mx-auto max-w-6xl px-5 py-20 sm:py-24">
       <ScrollReveal>
         <div className="text-center max-w-2xl mx-auto mb-12">
-          <p className="text-xs uppercase tracking-[0.18em] text-brand-soft mb-3">
+          <p className="text-xs uppercase tracking-[0.18em] text-accent-soft mb-3 font-mono">
             Time, reclaimed
           </p>
           <h2 className="text-3xl sm:text-5xl font-semibold tracking-tight">
             The hour you used to waste —
             <br />
-            <span className="text-gradient-blue">now spent shipping.</span>
+            <span className="text-gradient-green">now spent shipping.</span>
           </h2>
           <p className="mt-5 text-ink-mute">
             Most developers spend an hour scrolling, filtering, and bookmarking
@@ -979,7 +1014,7 @@ function FinalCTA() {
           <div className="absolute inset-0 -z-10 bg-dots opacity-50" />
           <h2 className="text-3xl sm:text-5xl font-semibold tracking-tight max-w-3xl mx-auto">
             Make a contribution that{" "}
-            <span className="text-gradient-blue">actually matters.</span>
+            <span className="text-gradient-green">actually matters.</span>
           </h2>
           <p className="mt-5 text-ink-mute max-w-xl mx-auto">
             One sentence. Ten seconds. A real PR by tonight. Stop bookmarking

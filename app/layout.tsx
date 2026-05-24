@@ -83,7 +83,7 @@ export default function RootLayout({
       afterSignOutUrl="/"
       appearance={{
         variables: {
-          colorPrimary: "#7c5cff",
+          colorPrimary: "#58a6ff",
           colorBackground: "transparent",
           colorInputBackground: "rgba(255,255,255,0.04)",
           colorInputText: "#ffffff",
@@ -106,29 +106,37 @@ export default function RootLayout({
         },
         elements: {
           rootBox: "w-full",
-          cardBox:
-            "bg-bg-card/85 backdrop-blur-xl border border-bg-border " +
-            "rounded-2xl shadow-2xl shadow-black/40 overflow-hidden",
+          // Card is invisible — our AuthShell already provides the panel.
+          cardBox: "bg-transparent border-0 shadow-none rounded-none",
           card:
-            "bg-transparent shadow-none border-0 p-7 sm:p-8 " +
+            "bg-transparent shadow-none border-0 p-0 " +
             "[&_*]:font-sans",
 
-          header: "mb-4",
-          headerTitle: "text-ink text-xl font-semibold tracking-tight",
-          headerSubtitle: "text-ink-mute text-sm",
+          // Hide Clerk's own header (we render our own "Welcome back" above)
+          header: "hidden",
+          headerTitle: "hidden",
+          headerSubtitle: "hidden",
 
-          // social buttons (GitHub etc.)
+          // Social buttons — GitHub-themed hero CTA.
+          // GitHub's actual primary button colors: bg #24292f, hover #32383f.
+          // The icon brightness filter ensures the octocat reads as pure white
+          // even though Clerk renders it as the provider's brand color.
           socialButtonsBlockButton:
-            "border border-bg-border bg-white/[0.04] hover:bg-white/[0.08] " +
-            "text-ink rounded-xl py-2.5 transition-colors",
-          socialButtonsBlockButtonText: "text-ink font-medium",
-          socialButtonsProviderIcon: "brightness-[1.6]",
+            "!bg-[#24292f] hover:!bg-[#32383f] !border !border-[#30363d] " +
+            "!text-white !rounded-lg !py-3 !px-4 !transition-colors " +
+            "!font-medium !text-[14px] !shadow-[0_1px_0_rgba(255,255,255,0.04)_inset,0_0_0_1px_rgba(255,255,255,0.06)] " +
+            "[&[data-provider=github]]:!bg-[#24292f] " +
+            "[&[data-provider=github]]:hover:!bg-[#32383f]",
+          socialButtonsBlockButtonText:
+            "!text-white !font-medium !text-[14px] !normal-case",
+          socialButtonsProviderIcon:
+            "!brightness-[2] !invert-0 !w-5 !h-5",
 
           // form
           formFieldLabel:
             "text-xs uppercase tracking-[0.14em] text-ink-dim mb-1.5",
           formFieldInput:
-            "bg-white/[0.04] border border-bg-border text-ink rounded-xl " +
+            "bg-white/[0.04] border border-bg-border text-ink rounded-lg " +
             "placeholder:text-ink-dim focus:border-brand/70 " +
             "focus:shadow-[0_0_0_3px_rgba(124,92,255,0.25)] " +
             "transition-shadow",
@@ -139,40 +147,39 @@ export default function RootLayout({
 
           formButtonPrimary:
             "bg-brand hover:bg-brand/90 text-white font-medium " +
-            "rounded-xl shadow-[0_0_24px_rgba(124,92,255,0.45)] " +
+            "rounded-lg shadow-[0_0_24px_rgba(124,92,255,0.45)] " +
             "py-2.5 transition-all normal-case text-sm",
-          formButtonReset:
-            "text-ink-mute hover:text-ink rounded-xl",
+          formButtonReset: "text-ink-mute hover:text-ink rounded-lg",
 
-          // divider
+          // divider — "or sign in with email" feel
+          dividerRow: "my-5",
           dividerLine: "bg-bg-border",
           dividerText:
-            "text-ink-dim text-[10px] uppercase tracking-[0.18em]",
+            "text-ink-dim text-[10.5px] uppercase tracking-[0.2em] font-mono-tight px-3",
 
-          // footer
+          // footer — Clerk's "Don't have an account? Sign up"
           footer:
             "bg-transparent border-t border-bg-border/60 " +
-            "[&>*]:bg-transparent mt-2",
-          footerAction: "text-ink-mute text-sm",
+            "[&>*]:bg-transparent mt-4 pt-4",
+          footerAction: "text-ink-mute text-[13px]",
           footerActionText: "text-ink-mute",
-          footerActionLink:
-            "text-brand hover:text-brand/80 font-medium",
+          footerActionLink: "text-brand hover:text-brand/80 font-medium",
           footerPagesLink: "text-ink-dim hover:text-ink-mute",
 
-          // identity preview (e.g. when verifying email)
+          // identity preview (post-OAuth email confirm)
           identityPreview:
-            "bg-white/[0.04] border border-bg-border rounded-xl",
+            "bg-white/[0.04] border border-bg-border rounded-lg",
           identityPreviewText: "text-ink",
           identityPreviewEditButton: "text-brand hover:text-brand/80",
 
-          // OTP code input
+          // OTP
           otpCodeFieldInput:
-            "bg-white/[0.04] border border-bg-border text-ink rounded-xl " +
+            "bg-white/[0.04] border border-bg-border text-ink rounded-lg " +
             "focus:border-brand/70 focus:shadow-[0_0_0_3px_rgba(124,92,255,0.25)]",
 
           // alerts
           alert:
-            "bg-warn/10 border border-warn/30 text-warn rounded-xl text-sm",
+            "bg-warn/10 border border-warn/30 text-warn rounded-lg text-sm",
           alertText: "text-ink",
 
           // misc

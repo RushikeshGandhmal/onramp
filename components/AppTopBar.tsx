@@ -23,8 +23,9 @@ export function AppTopBar({
   const computed = title || derivedTitle(pathname);
 
   return (
-    <header className="sticky top-0 z-30 border-b border-bg-border bg-bg/80 backdrop-blur-xl">
-      <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-3">
+    <header className="sticky top-0 z-30 border-b border-bg-border bg-bg/85 backdrop-blur-xl overflow-hidden">
+      <span className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-ok/40 to-transparent scanline pointer-events-none" />
+      <div className="relative flex items-center justify-between gap-3 px-4 sm:px-6 py-3">
         <div className="flex items-center gap-3 min-w-0">
           <button
             type="button"
@@ -35,11 +36,12 @@ export function AppTopBar({
             <MenuIcon />
           </button>
           <div className="min-w-0">
-            {subtitle && (
-              <p className="text-[10px] uppercase tracking-[0.16em] text-ink-dim">
-                {subtitle}
-              </p>
-            )}
+            <p className="text-[10px] font-mono uppercase tracking-[0.16em] text-ink-dim flex items-center gap-1.5">
+              <span className="text-ok">$</span>
+              <span>on-ramp</span>
+              <span className="text-ink-dim/60">/</span>
+              <span className="text-ink-mute">{subtitle || crumb(pathname)}</span>
+            </p>
             <h1 className="text-[15px] font-semibold tracking-tight truncate">
               {computed}
             </h1>
@@ -121,6 +123,13 @@ function derivedTitle(path: string): string {
   if (path.startsWith("/app/search")) return "Find issues";
   if (path.startsWith("/app")) return "Workspace";
   return "On-Ramp";
+}
+
+function crumb(path: string): string {
+  if (path.startsWith("/app/issues/")) return "issue";
+  if (path.startsWith("/app/search")) return "find-issue";
+  if (path.startsWith("/app")) return "workspace";
+  return "home";
 }
 
 function MenuIcon() {

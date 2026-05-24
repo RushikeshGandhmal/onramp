@@ -168,17 +168,17 @@ export function HeroChat() {
     <div className="w-full max-w-2xl mx-auto">
       {/* ─── chat input ──────────────────────────────────────── */}
       <div className="relative">
-        {/* glow ring */}
+        {/* glow ring — green-leaning to match GitHub primary action */}
         <div
           aria-hidden
-          className="pointer-events-none absolute -inset-px rounded-2xl bg-gradient-to-r from-brand/40 via-ok/30 to-brand/40 opacity-60 blur-xl"
+          className="pointer-events-none absolute -inset-px rounded-2xl bg-gradient-to-r from-accent/40 via-brand/25 to-accent/40 opacity-60 blur-xl"
         />
         <form
           onSubmit={(e) => {
             e.preventDefault();
             submit(value);
           }}
-          className="relative flex items-center gap-2 rounded-2xl border border-bg-border bg-bg-card/80 backdrop-blur p-2 shadow-2xl shadow-brand/10 transition-all focus-within:border-brand/70 focus-within:bg-bg-card focus-within:shadow-[0_0_0_3px_rgba(124,92,255,0.25)]"
+          className="relative flex items-center gap-2 rounded-2xl border border-bg-border bg-bg-card/80 backdrop-blur p-2 shadow-2xl shadow-accent/10 transition-all focus-within:border-accent/60 focus-within:bg-bg-card focus-within:shadow-[0_0_0_3px_rgba(63,185,80,0.25)]"
         >
           <div className="pl-3 pr-1 text-ink-dim">
             <SearchIcon />
@@ -258,7 +258,7 @@ export function HeroChat() {
           }`}
         >
           <Dots />
-          <span className="text-brand-soft">Finding the right issue…</span>
+          <span className="text-accent-soft">Finding the right issue…</span>
         </div>
 
         {/* result card */}
@@ -271,9 +271,9 @@ export function HeroChat() {
               : "opacity-0 translate-y-2"
           }`}
         >
-          <div className="card card-glow ring-1 ring-brand/30 p-5 text-left">
+          <div className="card card-glow ring-1 ring-accent/30 p-5 text-left">
             <div className="flex items-start gap-2 mb-1.5">
-              <SparkleIcon className="mt-0.5 text-brand-soft" />
+              <SparkleIcon className="mt-0.5 text-accent-soft" />
               <h3 className="text-[15px] sm:text-base font-semibold tracking-tight leading-snug">
                 {scene.result.title}
               </h3>
@@ -314,7 +314,7 @@ export function HeroChat() {
           }`}
         >
           <div className="inline-flex items-center gap-2 chip">
-            <span className="h-1.5 w-1.5 rounded-full bg-brand shadow-[0_0_6px_currentColor]" />
+            <span className="h-1.5 w-1.5 rounded-full bg-accent shadow-[0_0_6px_currentColor]" />
             Press Enter to find your issue
           </div>
         </div>
@@ -399,9 +399,9 @@ function SparkleIcon({ className }: { className?: string }) {
 function Dots() {
   return (
     <span className="inline-flex items-center gap-0.5">
-      <span className="h-1.5 w-1.5 rounded-full bg-brand-soft animate-[hbeat_1s_ease-in-out_infinite]" />
-      <span className="h-1.5 w-1.5 rounded-full bg-brand-soft animate-[hbeat_1s_ease-in-out_0.15s_infinite]" />
-      <span className="h-1.5 w-1.5 rounded-full bg-brand-soft animate-[hbeat_1s_ease-in-out_0.3s_infinite]" />
+      <span className="h-1.5 w-1.5 rounded-full bg-accent-soft animate-[hbeat_1s_ease-in-out_infinite]" />
+      <span className="h-1.5 w-1.5 rounded-full bg-accent-soft animate-[hbeat_1s_ease-in-out_0.15s_infinite]" />
+      <span className="h-1.5 w-1.5 rounded-full bg-accent-soft animate-[hbeat_1s_ease-in-out_0.3s_infinite]" />
     </span>
   );
 }

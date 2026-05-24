@@ -51,21 +51,24 @@ export function Sidebar() {
   const pathname = usePathname() || "";
   return (
     <aside
-      className="hidden md:flex md:flex-col w-60 lg:w-64 shrink-0 border-r border-bg-border bg-bg-soft/60 backdrop-blur sticky top-0 h-screen"
+      className="hidden md:flex md:flex-col w-60 lg:w-64 shrink-0 border-r border-bg-border bg-bg-soft/60 backdrop-blur sticky top-0 h-screen overflow-hidden"
       aria-label="Primary navigation"
     >
-      <div className="px-5 pt-5 pb-4">
-        <Link href="/" className="flex items-center gap-2 group" aria-label="On-Ramp home">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-brand to-brand/60 shadow-[0_8px_24px_-6px_rgba(124,92,255,0.6)]">
-            <BoltIcon />
+      <div className="absolute inset-0 bg-grid-dots opacity-40 pointer-events-none" />
+      <div className="absolute -top-32 -left-20 h-72 w-72 rounded-full bg-ok/[0.07] blur-[80px] pointer-events-none" />
+      <div className="relative px-5 pt-5 pb-4">
+        <Link href="/" className="flex items-center gap-2.5 group" aria-label="On-Ramp home">
+          <span className="relative inline-flex h-9 w-9 items-center justify-center rounded-[10px] bg-gradient-to-b from-[#1c2430] to-[#0d1117] ring-1 ring-bg-border shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_4px_12px_-4px_rgba(0,0,0,0.6)] transition-transform group-hover:scale-[1.04]">
+            <span aria-hidden className="absolute inset-x-1 top-px h-px rounded-full bg-white/[0.06]" />
+            <RampMark />
           </span>
-          <span className="text-[15px] font-semibold tracking-tight">
+          <span className="text-[15px] font-semibold tracking-[-0.01em]">
             On-Ramp
           </span>
         </Link>
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-3 pb-3 space-y-0.5">
+      <nav className="relative flex-1 overflow-y-auto px-3 pb-3 space-y-0.5">
         <p className="px-3 pt-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-ink-dim">
           Workspace
         </p>
@@ -92,9 +95,10 @@ export function Sidebar() {
         ))}
       </nav>
 
-      <div className="border-t border-bg-border px-3 py-3">
-        <div className="rounded-xl bg-gradient-to-br from-brand/15 to-brand/5 border border-brand/20 p-3.5">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-soft mb-1">
+      <div className="relative border-t border-bg-border px-3 py-3">
+        <div className="rounded-xl bg-gradient-to-br from-ok/[0.12] to-ok/[0.03] border border-ok/25 p-3.5">
+          <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-ok mb-1 flex items-center gap-1.5">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-ok animate-pulse" />
             Founding member
           </p>
           <p className="text-[12px] text-ink-mute leading-relaxed mb-2.5">
@@ -102,7 +106,7 @@ export function Sidebar() {
           </p>
           <a
             href="mailto:hello@on-ramp.dev?subject=Pro%20founding%20member"
-            className="block text-center text-[11px] font-semibold rounded-md bg-brand text-white py-1.5 hover:bg-brand/90 transition-colors"
+            className="block text-center text-[11px] font-semibold rounded-md bg-ok text-white py-1.5 hover:bg-ok/90 transition-colors shadow-[0_6px_18px_-4px_rgba(63,185,80,0.45)]"
           >
             Reserve price
           </a>
@@ -116,7 +120,7 @@ function SidebarLink({ item, active }: { item: NavItem; active: boolean }) {
   const className =
     "group flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13.5px] transition-all " +
     (active
-      ? "bg-brand/15 text-ink ring-1 ring-brand/30 shadow-[inset_0_0_0_1px_rgba(124,92,255,0.05)]"
+      ? "bg-ok/[0.13] text-ink ring-1 ring-ok/30 shadow-[inset_0_0_0_1px_rgba(63,185,80,0.06)]"
       : item.disabled
       ? "text-ink-dim cursor-not-allowed"
       : "text-ink-mute hover:text-ink hover:bg-white/[0.04]");
@@ -126,7 +130,7 @@ function SidebarLink({ item, active }: { item: NavItem; active: boolean }) {
         className={
           "shrink-0 " +
           (active
-            ? "text-brand-soft"
+            ? "text-ok-soft"
             : item.disabled
             ? "text-ink-dim"
             : "text-ink-mute group-hover:text-ink")
@@ -158,10 +162,39 @@ function SidebarLink({ item, active }: { item: NavItem; active: boolean }) {
 
 /* ───────────── icons ───────────── */
 
-function BoltIcon() {
+function RampMark() {
   return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" fill="white" />
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden
+      className="relative"
+    >
+      <defs>
+        <linearGradient
+          id="sidebar-ramp"
+          x1="3"
+          y1="20"
+          x2="21"
+          y2="4"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop offset="0" stopColor="#58a6ff" />
+          <stop offset="0.55" stopColor="#56d364" />
+          <stop offset="1" stopColor="#3fb950" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M4 19 C 9 19, 11 15, 12.5 12 C 14 9, 16 5, 20 5"
+        stroke="url(#sidebar-ramp)"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        fill="none"
+      />
+      <circle cx="20" cy="5" r="1.7" fill="#3fb950" />
+      <circle cx="20" cy="5" r="3.2" fill="#3fb950" opacity="0.18" />
     </svg>
   );
 }

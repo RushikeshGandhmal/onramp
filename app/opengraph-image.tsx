@@ -43,7 +43,7 @@ export default async function OG() {
                 width: 32,
                 height: 32,
                 borderRadius: 10,
-                background: "linear-gradient(135deg,#7c5cff,#5b8cff)",
+                background: "linear-gradient(135deg,#3fb950,#58a6ff)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -91,7 +91,7 @@ export default async function OG() {
             }}
           >
             Type what you want to work on. We hand you the right open-source
-            issue with an AI explanation. The PR is up to you.
+            issue with an AI explanation in seconds.
           </div>
         </div>
 
