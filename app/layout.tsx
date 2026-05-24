@@ -80,26 +80,109 @@ export default function RootLayout({
 
   return (
     <ClerkProvider
+      afterSignOutUrl="/"
       appearance={{
         variables: {
           colorPrimary: "#7c5cff",
-          colorBackground: "#0a0a0f",
-          colorInputBackground: "#15151c",
+          colorBackground: "transparent",
+          colorInputBackground: "rgba(255,255,255,0.04)",
           colorInputText: "#ffffff",
           colorText: "#ffffff",
           colorTextSecondary: "#a3a3b2",
-          borderRadius: "0.75rem",
-          fontFamily: "inherit"
+          colorNeutral: "#ffffff",
+          colorDanger: "#ff5e6c",
+          colorSuccess: "#3ecf8e",
+          colorWarning: "#ffb454",
+          colorShimmer: "rgba(255,255,255,0.08)",
+          borderRadius: "0.875rem",
+          fontFamily: "inherit",
+          fontSize: "0.95rem"
+        },
+        layout: {
+          socialButtonsPlacement: "top",
+          socialButtonsVariant: "blockButton",
+          showOptionalFields: true,
+          logoPlacement: "none"
         },
         elements: {
-          card: "bg-bg-card border border-bg-border shadow-2xl shadow-black/40",
-          headerTitle: "text-ink",
-          headerSubtitle: "text-ink-mute",
+          rootBox: "w-full",
+          cardBox:
+            "bg-bg-card/85 backdrop-blur-xl border border-bg-border " +
+            "rounded-2xl shadow-2xl shadow-black/40 overflow-hidden",
+          card:
+            "bg-transparent shadow-none border-0 p-7 sm:p-8 " +
+            "[&_*]:font-sans",
+
+          header: "mb-4",
+          headerTitle: "text-ink text-xl font-semibold tracking-tight",
+          headerSubtitle: "text-ink-mute text-sm",
+
+          // social buttons (GitHub etc.)
           socialButtonsBlockButton:
-            "border-bg-border bg-white/5 hover:bg-white/10 text-ink",
+            "border border-bg-border bg-white/[0.04] hover:bg-white/[0.08] " +
+            "text-ink rounded-xl py-2.5 transition-colors",
+          socialButtonsBlockButtonText: "text-ink font-medium",
+          socialButtonsProviderIcon: "brightness-[1.6]",
+
+          // form
+          formFieldLabel:
+            "text-xs uppercase tracking-[0.14em] text-ink-dim mb-1.5",
+          formFieldInput:
+            "bg-white/[0.04] border border-bg-border text-ink rounded-xl " +
+            "placeholder:text-ink-dim focus:border-brand/70 " +
+            "focus:shadow-[0_0_0_3px_rgba(124,92,255,0.25)] " +
+            "transition-shadow",
+          formFieldInputShowPasswordButton: "text-ink-mute hover:text-ink",
+          formFieldAction: "text-brand hover:text-brand/80 text-xs",
+          formFieldHintText: "text-ink-dim text-xs",
+          formFieldErrorText: "text-err text-xs",
+
           formButtonPrimary:
-            "bg-brand hover:bg-brand/90 text-white shadow-[0_0_24px_rgba(124,92,255,0.45)]",
-          footerActionLink: "text-brand hover:text-brand/80"
+            "bg-brand hover:bg-brand/90 text-white font-medium " +
+            "rounded-xl shadow-[0_0_24px_rgba(124,92,255,0.45)] " +
+            "py-2.5 transition-all normal-case text-sm",
+          formButtonReset:
+            "text-ink-mute hover:text-ink rounded-xl",
+
+          // divider
+          dividerLine: "bg-bg-border",
+          dividerText:
+            "text-ink-dim text-[10px] uppercase tracking-[0.18em]",
+
+          // footer
+          footer:
+            "bg-transparent border-t border-bg-border/60 " +
+            "[&>*]:bg-transparent mt-2",
+          footerAction: "text-ink-mute text-sm",
+          footerActionText: "text-ink-mute",
+          footerActionLink:
+            "text-brand hover:text-brand/80 font-medium",
+          footerPagesLink: "text-ink-dim hover:text-ink-mute",
+
+          // identity preview (e.g. when verifying email)
+          identityPreview:
+            "bg-white/[0.04] border border-bg-border rounded-xl",
+          identityPreviewText: "text-ink",
+          identityPreviewEditButton: "text-brand hover:text-brand/80",
+
+          // OTP code input
+          otpCodeFieldInput:
+            "bg-white/[0.04] border border-bg-border text-ink rounded-xl " +
+            "focus:border-brand/70 focus:shadow-[0_0_0_3px_rgba(124,92,255,0.25)]",
+
+          // alerts
+          alert:
+            "bg-warn/10 border border-warn/30 text-warn rounded-xl text-sm",
+          alertText: "text-ink",
+
+          // misc
+          formResendCodeLink: "text-brand hover:text-brand/80",
+          userButtonPopoverCard:
+            "bg-bg-card/95 backdrop-blur-xl border border-bg-border " +
+            "rounded-2xl shadow-2xl shadow-black/40",
+          userButtonPopoverActionButton: "text-ink hover:bg-white/5",
+          userButtonPopoverActionButtonText: "text-ink",
+          userButtonPopoverFooter: "bg-transparent border-bg-border"
         }
       }}
     >

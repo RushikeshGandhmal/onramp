@@ -5,6 +5,22 @@ const nextConfig = {
   experimental: {
     serverActions: { allowedOrigins: ["*"] }
   },
+  async redirects() {
+    // Legacy URLs: /search and /issue/* used to live at the root. Now they
+    // live inside the authenticated /app shell.
+    return [
+      {
+        source: "/search",
+        destination: "/app/search",
+        permanent: true
+      },
+      {
+        source: "/issue/:owner/:name/:number",
+        destination: "/app/issues/:owner/:name/:number",
+        permanent: true
+      }
+    ];
+  },
   async headers() {
     return [
       {

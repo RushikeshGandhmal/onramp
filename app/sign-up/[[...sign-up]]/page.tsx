@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { SignUp } from "@clerk/nextjs";
-import { Header } from "@/components/Header";
+import { AuthShell } from "@/components/AuthShell";
 
 const clerkConfigured = Boolean(
   process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&
@@ -8,48 +8,41 @@ const clerkConfigured = Boolean(
 );
 
 export const dynamic = "force-dynamic";
+export const metadata = {
+  title: "Create your account",
+  description: "Join On-Ramp — free forever. Find OSS issues in seconds."
+};
 
 export default function SignUpPage() {
   return (
-    <main>
-      <Header />
-      <section className="mx-auto max-w-md px-5 py-16">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-semibold tracking-tight mb-2">
-            Join On-Ramp
-          </h1>
-          <p className="text-ink-mute text-sm">
-            Free forever. No credit card. Find OSS issues in seconds.
-          </p>
-        </div>
+    <AuthShell mode="sign-up">
+      {clerkConfigured ? (
+        <SignUp
+          signInUrl="/sign-in"
+          fallbackRedirectUrl="/app/search"
+          forceRedirectUrl="/app/search"
+        />
+      ) : (
+        <UnconfiguredNotice mode="sign-up" />
+      )}
+    </AuthShell>
+  );
+}
 
-        {clerkConfigured ? (
-          <div className="flex justify-center">
-            <SignUp
-              signInUrl="/sign-in"
-              fallbackRedirectUrl="/search?q=beginner%20issues"
-            />
-          </div>
-        ) : (
-          <div className="card p-6 text-center">
-            <div className="text-sm font-medium text-ink mb-2">
-              Sign-up not configured
-            </div>
-            <p className="text-xs text-ink-mute leading-relaxed mb-4">
-              Set <code className="text-brand">NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY</code>
-              {" "}and{" "}
-              <code className="text-brand">CLERK_SECRET_KEY</code> in{" "}
-              <code className="text-ink">.env.local</code> to enable auth.
-            </p>
-            <Link
-              href="/search?q=beginner%20issues"
-              className="btn btn-primary text-xs"
-            >
-              Continue without signing up
-            </Link>
-          </div>
-        )}
-      </section>
-    </main>
+function UnconfiguredNotice({ mode }: { mode: "sign-in" | "sign-up" }) {
+  return (
+    <div className="card p-6">
+      <div className="text-sm font-medium text-ink mb-2">
+        {mode === "sign-in" ? "Sign-in" : "Sign-up"} not configured
+      </div>
+      <p className="text-[12.5px] text-ink-mute leading-relaxed mb-4">
+        Set <code className="text-brand">NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY</code>{" "}
+        and <code className="text-brand">CLERK_SECRET_KEY</code> in{" "}
+        <code className="text-ink">.env.local</code> to enable auth.
+      </p>
+      <Link href="/app/search" className="btn btn-primary text-xs w-full justify-center">
+        Continue without signing up
+      </Link>
+    </div>
   );
 }

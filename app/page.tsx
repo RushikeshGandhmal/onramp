@@ -1,10 +1,9 @@
 import Link from "next/link";
 import { Header, Logo } from "@/components/Header";
-import { SearchInput } from "@/components/SearchInput";
 import { MockSearchDemo } from "@/components/MockSearchDemo";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { FaqList } from "@/components/FaqList";
-import { HeroSideDemo } from "@/components/HeroSideDemo";
+import { HeroChat } from "@/components/HeroChat";
 
 export default function HomePage() {
   return (
@@ -55,51 +54,38 @@ function Hero() {
         <div className="beam beam-3" />
       </div>
 
-      <div className="relative mx-auto max-w-7xl px-5 pt-16 sm:pt-24 pb-20 sm:pb-28 animate-fade-in">
-        <div className="grid lg:grid-cols-12 gap-10 lg:gap-12 items-center">
-          {/* LEFT — copy + input */}
-          <div className="lg:col-span-7 text-center lg:text-left">
-            <Link
-              href="#audiences"
-              className="hero-pill mb-7 mx-auto lg:mx-0"
-            >
-              <span className="hero-pill-dot">New</span>
-              From a sentence to the perfect issue — in 10 seconds
-              <ArrowRight />
-            </Link>
+      <div className="relative mx-auto max-w-3xl px-5 pt-16 sm:pt-24 pb-16 sm:pb-24 text-center animate-fade-in">
+        <Link href="#audiences" className="hero-pill mb-8 mx-auto">
+          <span className="hero-pill-dot">New</span>
+          From a sentence to the perfect issue — in 10 seconds
+          <ArrowRight />
+        </Link>
 
-            <h1 className="text-[40px] leading-[1.04] sm:text-7xl font-semibold tracking-tight">
-              Make meaningful
-              <br />
-              <span className="text-gradient-blue">contributions.</span>
-            </h1>
+        <h1 className="text-[40px] leading-[1.04] sm:text-7xl font-semibold tracking-tight">
+          Make meaningful
+          <br />
+          <span className="text-gradient-blue">contributions.</span>
+        </h1>
 
-            <p className="mt-6 text-base sm:text-xl text-ink-mute max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-              Spent an hour hunting for an issue you can actually solve? Type
-              one sentence. On-Ramp hands you the right open-source issue —
-              explained like a friend would. The PR is still up to you.
-            </p>
+        <p className="mt-6 text-base sm:text-xl text-ink-mute max-w-2xl mx-auto leading-relaxed">
+          Spent an hour hunting for an issue you can actually solve? Type one
+          sentence. On-Ramp hands you the right open-source issue — explained
+          like a friend would. The PR is still up to you.
+        </p>
 
-            <div className="mt-9 max-w-2xl mx-auto lg:mx-0">
-              <SearchInput rotating />
-            </div>
+        <div className="mt-10">
+          <HeroChat />
+        </div>
 
-            <p className="mt-5 text-xs text-ink-dim">
-              Free · Sign in to search · Takes 5 seconds
-            </p>
+        <p className="mt-4 text-xs text-ink-dim">
+          Free · Sign in to search · Takes 5 seconds
+        </p>
 
-            {/* hero stats */}
-            <div className="mt-12 grid grid-cols-3 gap-3 sm:gap-6 max-w-lg mx-auto lg:mx-0">
-              <Stat value="10s" label="To find an issue" />
-              <Stat value="60min" label="The old way · gone" strike />
-              <Stat value="50+" label="Curated OSS projects" />
-            </div>
-          </div>
-
-          {/* RIGHT — live animated demo */}
-          <div className="lg:col-span-5">
-            <HeroSideDemo />
-          </div>
+        {/* hero stats */}
+        <div className="mt-14 grid grid-cols-3 gap-3 sm:gap-6 max-w-lg mx-auto">
+          <Stat value="10s" label="To find an issue" />
+          <Stat value="60min" label="The old way · gone" strike />
+          <Stat value="50+" label="Curated OSS projects" />
         </div>
       </div>
     </section>
@@ -446,7 +432,7 @@ function DemoSection() {
           </ul>
           <div className="mt-8 flex gap-3">
             <Link
-              href="/search?q=react%20beginner%20issues"
+              href="/app/search?q=react%20beginner%20issues"
               className="btn btn-primary"
             >
               Try it free <ArrowRight />
@@ -545,7 +531,7 @@ function Audiences() {
         "AI explains every issue simply",
         "Where-to-start hints save hours"
       ],
-      cta: { label: "Find an issue", href: "/search?q=react%20beginner%20issues" }
+      cta: { label: "Find an issue", href: "/app/search?q=react%20beginner%20issues" }
     },
     {
       icon: <SparkIcon />,
@@ -649,7 +635,7 @@ function Pricing() {
       price: "$0",
       cadence: "forever",
       tagline: "Everything On-Ramp does today — for every developer.",
-      cta: { label: "Start searching", href: "/search?q=react%20beginner%20issues" },
+      cta: { label: "Start searching", href: "/app/search?q=react%20beginner%20issues" },
       available: "today" as const,
       features: [
         "Unlimited natural-language search",
@@ -720,52 +706,65 @@ function Pricing() {
         </div>
       </ScrollReveal>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-4 pt-5">
         {tiers.map((t, i) => (
           <ScrollReveal key={t.name} delay={i * 100}>
-            <div
-              className={`relative card card-glow p-7 h-full flex flex-col ${
-                t.highlight ? "ring-1 ring-brand/50" : ""
-              }`}
-            >
+            <div className="relative h-full">
               {t.badge && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="badge-soon">{t.badge}</span>
+                <div className="absolute left-1/2 -translate-x-1/2 -top-3.5 z-10 whitespace-nowrap">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-brand px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white shadow-[0_8px_24px_-6px_rgba(124,92,255,0.6)]">
+                    <span className="h-1 w-1 rounded-full bg-white/90" />
+                    {t.badge}
+                  </span>
                 </div>
               )}
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm uppercase tracking-[0.16em] text-ink-mute">
-                  {t.name}
-                </h3>
-                <span className={`chip ${availLabel[t.available].chip}`}>
-                  {availLabel[t.available].text}
-                </span>
-              </div>
-              <div className="flex items-end gap-1 mb-1">
-                <span className="text-4xl sm:text-5xl font-semibold tracking-tight">
-                  {t.price}
-                </span>
-                <span className="text-sm text-ink-dim mb-2">{t.cadence}</span>
-              </div>
-              <p className="text-sm text-ink-mute mb-6">{t.tagline}</p>
-              <ul className="space-y-2.5 mb-7">
-                {t.features.map((f) => (
-                  <li
-                    key={f}
-                    className="flex items-start gap-2 text-sm text-ink"
-                  >
-                    <CheckIcon className="text-brand-soft mt-0.5" />
-                    <span>{f}</span>
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href={t.cta.href}
-                className={`btn mt-auto ${t.highlight ? "btn-primary" : "btn-ghost"}`}
+              <div
+                className={`card card-glow p-7 h-full flex flex-col ${
+                  t.highlight
+                    ? "ring-1 ring-brand/60 bg-bg-card/90 shadow-[0_0_40px_-12px_rgba(124,92,255,0.45)]"
+                    : ""
+                }`}
               >
-                {t.cta.label}
-                <ArrowRight />
-              </Link>
+                <div className="flex items-start justify-between gap-3 mb-4">
+                  <h3 className="text-sm uppercase tracking-[0.16em] text-ink-mute">
+                    {t.name}
+                  </h3>
+                  <span className={`chip ${availLabel[t.available].chip} shrink-0`}>
+                    {availLabel[t.available].text}
+                  </span>
+                </div>
+                <div className="flex items-baseline gap-1.5 mb-2">
+                  <span className="text-4xl sm:text-5xl font-semibold tracking-tight">
+                    {t.price}
+                  </span>
+                  {t.cadence && (
+                    <span className="text-sm text-ink-dim">{t.cadence}</span>
+                  )}
+                </div>
+                <p className="text-sm text-ink-mute mb-6 leading-relaxed">
+                  {t.tagline}
+                </p>
+                <ul className="space-y-2.5 mb-7">
+                  {t.features.map((f) => (
+                    <li
+                      key={f}
+                      className="flex items-start gap-2.5 text-sm text-ink leading-snug"
+                    >
+                      <CheckIcon className="text-brand-soft mt-0.5 shrink-0" />
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  href={t.cta.href}
+                  className={`btn mt-auto w-full justify-center ${
+                    t.highlight ? "btn-primary" : "btn-ghost"
+                  }`}
+                >
+                  {t.cta.label}
+                  <ArrowRight />
+                </Link>
+              </div>
             </div>
           </ScrollReveal>
         ))}
@@ -988,7 +987,7 @@ function FinalCTA() {
           </p>
           <div className="mt-9 flex flex-col sm:flex-row gap-3 justify-center">
             <Link
-              href="/search?q=react%20beginner%20issues"
+              href="/app/search?q=react%20beginner%20issues"
               className="btn btn-primary px-6 py-3.5"
             >
               Launch On-Ramp <ArrowRight />
@@ -1033,7 +1032,7 @@ function Footer() {
                 { label: "Who it's for", href: "#audiences" },
                 { label: "Pricing", href: "#pricing" },
                 { label: "Roadmap", href: "#roadmap" },
-                { label: "Launch app", href: "/search?q=react%20beginner%20issues" }
+                { label: "Sign in", href: "/sign-in" }
               ]}
             />
             <FooterCol

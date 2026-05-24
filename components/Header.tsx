@@ -22,13 +22,6 @@ export function Header() {
           <NavLink href="/#pricing">Pricing</NavLink>
           <NavLink href="/#roadmap">Roadmap</NavLink>
           <NavLink href="/#faq">FAQ</NavLink>
-          <Link
-            href="/search?q=react%20beginner%20issues"
-            className="ml-2 btn btn-primary text-xs"
-          >
-            Launch app
-            <ArrowIcon />
-          </Link>
           <div className="ml-2 flex items-center">
             <UserMenu authConfigured={authConfigured} />
           </div>
@@ -85,16 +78,3 @@ export function Logo({ size = 22 }: { size?: number }) {
   );
 }
 
-function ArrowIcon() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M5 12h14m0 0-5-5m5 5-5 5"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}

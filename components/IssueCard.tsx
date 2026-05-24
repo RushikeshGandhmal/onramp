@@ -16,7 +16,7 @@ function relativeTime(iso: string): string {
 }
 
 export function IssueCard({ issue }: { issue: RankedIssue }) {
-  const detailHref = `/issue/${issue.repo.owner}/${issue.repo.name}/${issue.number}?q=`;
+  const detailHref = `/app/issues/${issue.repo.owner}/${issue.repo.name}/${issue.number}?q=`;
   return (
     <article className="card group p-5 animate-slide-up">
       <header className="flex items-start justify-between gap-3 mb-2">

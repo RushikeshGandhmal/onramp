@@ -48,7 +48,7 @@ export function SearchInput({
     const trimmed = q.trim();
     if (!trimmed) return;
     startTransition(() => {
-      router.push(`/search?q=${encodeURIComponent(trimmed)}`);
+      router.push(`/app/search?q=${encodeURIComponent(trimmed)}`);
     });
   }
 
