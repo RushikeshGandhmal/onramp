@@ -1,269 +1,417 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { SearchInput } from "@/components/SearchInput";
 import { ensureUser, getUserId } from "@/lib/user";
 import { getProfile } from "@/lib/profile";
-import { getPersonalizationSignals } from "@/lib/personalization";
+import {
+  getPersonalizationSignals,
+  inferFocus
+} from "@/lib/personalization";
 import { getContributionSummary } from "@/lib/contributions";
 import { buildSkillUnderstanding, persistInferredFocus } from "@/lib/skills";
 import { listSavedIssues } from "@/lib/saved";
-import { SearchInput } from "@/components/SearchInput";
+import type { SavedIssue } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-// Suggested starter prompts, biased by inferred focus when we have one.
-function suggestionsFor(focus: string | null, topLangs: string[]): string[] {
-  const lang = topLangs[0];
-  const base: string[] = [];
-  if (focus?.startsWith("frontend")) {
-    base.push("React beginner frontend issues", "Accessibility a11y issues", "CSS / UI good first issues");
-  } else if (focus?.startsWith("backend")) {
-    base.push("Backend API beginner issues", "Database / query help wanted", "Go backend good first issues");
-  } else if (focus?.startsWith("documentation")) {
-    base.push("Documentation issues for newcomers", "README / docs good first issues", "Typo & wording fixes");
-  } else if (focus?.startsWith("ML") || focus?.startsWith("data")) {
-    base.push("Python data beginner issues", "ML library good first issues", "Notebook / docs improvements");
-  } else {
-    base.push("Beginner-friendly good first issues", "Help wanted in popular repos", "Documentation issues for newcomers");
-  }
-  if (lang) base.unshift(`${lang} beginner issues`);
-  return Array.from(new Set(base)).slice(0, 4);
-}
-
-export default async function AppHome() {
-  // Guarantees the mirror user row exists; degrades gracefully otherwise.
-  const user = await ensureUser();
-  const userId = user?.id ?? (await getUserId());
-
+// The workspace home — a calm, personalized launchpad.
+// Everything degrades gracefully: signed out, no DB, or no signal all render
+// a clean "just search" experience without errors.
+export default function AppHome() {
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-7 max-w-6xl mx-auto w-full">
-      <Suspense fallback={<DashboardSkeleton greeting={firstName(user?.name)} />}>
-        {/* The data-heavy section streams in; the search box renders instantly. */}
-        <Dashboard userId={userId} greeting={firstName(user?.name)} login={user?.githubLogin ?? null} />
+    <div className="mx-auto max-w-4xl px-4 sm:px-6 py-8 sm:py-12">
+      <Suspense fallback={<DashboardSkeleton />}>
+        <Dashboard />
       </Suspense>
     </div>
   );
 }
 
-function firstName(name: string | null | undefined): string {
-  if (!name) return "there";
-  return name.split(" ")[0] || "there";
-}
+async function Dashboard() {
+  const user = await ensureUser();
+  const userId = user?.id ?? (await getUserId());
 
-async function Dashboard({
-  userId,
-  greeting,
-  login
-}: {
-  userId: string | null;
-  greeting: string;
-  login: string | null;
-}) {
-  // Load profile + signals + contributions in parallel. All degrade gracefully.
-  const profile = userId ? await getProfile(userId) : null;
-  const [signals, contributions] = await Promise.all([
+  // No identity (DB-less / signed-out edge): show the bare search.
+  if (!userId) {
+    return (
+      <>
+        <Greeting name={null} />
+        <div className="mt-6">
+          <SearchInput autoFocus size="lg" rotating />
+        </div>
+      </>
+    );
+  }
+
+  // Load everything in parallel; each call is independently graceful.
+  const profile = await getProfile(userId);
+  const [signals, contributions, saved] = await Promise.all([
     getPersonalizationSignals(userId, profile),
-    getContributionSummary(userId, login)
+    getContributionSummary(userId, user?.githubLogin ?? null),
+    listSavedIssues(userId)
   ]);
 
   const skill = buildSkillUnderstanding(signals, profile, contributions);
-  // Best-effort: persist the inferred focus so other surfaces can read it cheaply.
-  if (userId && skill.focus !== (profile?.inferredFocus ?? null)) {
-    void persistInferredFocus(userId, skill.focus, profile?.inferredFocus ?? null);
-  }
 
-  const saved = userId ? await listSavedIssues(userId) : [];
-  const suggestions = suggestionsFor(skill.focus, skill.topLanguages);
-  const needsProfile = !profile?.onboarded;
+  // Best-effort: persist a freshly inferred focus so other surfaces can read it
+  // cheaply. Only writes when it actually changed. Never blocks the render.
+  const freshFocus = inferFocus(signals, profile);
+  void persistInferredFocus(userId, freshFocus, profile.inferredFocus);
+
+  const firstName =
+    user?.name?.split(" ")[0] || user?.githubLogin || null;
+
+  const suggestions = buildSuggestions(skill, profile);
 
   return (
     <>
-      {/* Hero / search */}
-      <div className="mb-7">
-        <h1 className="text-2xl sm:text-[28px] font-semibold tracking-[-0.01em] mb-1.5">
-          {greeting === "there" ? "Welcome back" : `Welcome back, ${greeting}`}
-          <span className="text-ok">.</span>
-        </h1>
-        <p className="text-ink-mute text-[15px] mb-5">
-          {skill.confident && skill.focus ? (
-            <>
-              You look <span className="text-ink font-medium">{skill.focus}</span>. Here&apos;s where to start today.
-            </>
-          ) : (
-            <>Describe what you want to work on — we&apos;ll find the right issue in seconds.</>
-          )}
-        </p>
-        <SearchInput autoFocus={false} size="lg" rotating />
+      <Greeting name={firstName} />
+
+      {/* Primary action — always front and center */}
+      <div className="mt-6">
+        <SearchInput autoFocus size="lg" rotating />
       </div>
 
-      {/* Personalized strip */}
-      <div className="grid gap-4 md:grid-cols-3 mb-7">
-        <SkillCard skill={skill} />
-        <SavedCard count={saved.length} recent={saved.slice(0, 3)} />
-        <ContributionsCard contributions={contributions} login={login} />
+      {/* Personalized hints */}
+      {suggestions.length > 0 && (
+        <section className="mt-8">
+          <SectionLabel>Picked for you</SectionLabel>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {suggestions.map((s) => (
+              <Link
+                key={s.q}
+                href={`/app/search?q=${encodeURIComponent(s.q)}`}
+                className="chip chip-brand hover:bg-brand/20 transition cursor-pointer"
+              >
+                {s.label}
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <div className="mt-8 grid gap-5 sm:grid-cols-2">
+        {/* Skill understanding */}
+        {skill.confident && (
+          <SkillCard
+            focus={skill.focus}
+            comfort={skill.comfort}
+            topLanguages={skill.topLanguages}
+            strengths={skill.strengths}
+          />
+        )}
+
+        {/* Contribution summary */}
+        {contributions.available && (
+          <ContributionCard
+            mergedPrCount={contributions.mergedPrCount}
+            openPrCount={contributions.openPrCount}
+            recent={contributions.recentMergedPrs}
+            login={contributions.login}
+          />
+        )}
       </div>
 
-      {/* Suggested for you */}
-      <section className="mb-8">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-[13px] font-semibold uppercase tracking-[0.14em] text-ink-dim">
-            {skill.confident ? "Suggested for you" : "Popular starting points"}
-          </h2>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {suggestions.map((s) => (
+      {/* Saved issues preview */}
+      <section className="mt-8">
+        <div className="flex items-center justify-between">
+          <SectionLabel>Saved issues</SectionLabel>
+          {saved.length > 0 && (
             <Link
-              key={s}
-              href={`/app/search?q=${encodeURIComponent(s)}`}
-              className="chip hover:bg-white/10 hover:text-ink transition"
+              href="/app/saved"
+              className="text-[12px] text-ink-mute hover:text-ink"
             >
-              {s}
+              View all ({saved.length}) →
             </Link>
-          ))}
+          )}
         </div>
+        {saved.length === 0 ? (
+          <EmptySaved />
+        ) : (
+          <div className="mt-3 space-y-2">
+            {saved.slice(0, 4).map((s) => (
+              <SavedPreviewRow key={s.id} issue={s} />
+            ))}
+          </div>
+        )}
       </section>
 
-      {/* Profile nudge */}
-      {needsProfile && (
-        <Link
-          href="/app/profile"
-          className="block rounded-xl border border-ok/25 bg-gradient-to-br from-ok/[0.10] to-transparent p-4 hover:border-ok/40 transition group"
-        >
-          <p className="text-[13px] font-semibold text-ok mb-0.5">
-            Personalize your recommendations →
-          </p>
-          <p className="text-[13px] text-ink-mute">
-            Tell us your preferred technologies and skill level. Takes 30 seconds and makes every search sharper.
-          </p>
-        </Link>
+      {/* Gentle profile nudge if they haven't set preferences */}
+      {!profile.onboarded && (
+        <section className="mt-8">
+          <Link
+            href="/app/profile"
+            className="block rounded-xl border border-bg-border bg-bg-soft/50 p-4 hover:border-ok/40 transition group"
+          >
+            <p className="text-sm font-medium text-ink flex items-center gap-2">
+              <span className="text-ok">●</span>
+              Tell us what you like
+              <span className="text-ink-dim group-hover:translate-x-0.5 transition-transform">
+                →
+              </span>
+            </p>
+            <p className="mt-1 text-[13px] text-ink-mute">
+              Set your languages and skill level so recommendations get sharper.
+              Takes 30 seconds.
+            </p>
+          </Link>
+        </section>
       )}
     </>
   );
 }
 
-/* ───────────── cards ───────────── */
+/* ───────────────────────── pieces ───────────────────────── */
 
-function SkillCard({
-  skill
-}: {
-  skill: ReturnType<typeof buildSkillUnderstanding>;
-}) {
+function Greeting({ name }: { name: string | null }) {
+  const hour = new Date().getHours();
+  const part =
+    hour < 5
+      ? "Still up"
+      : hour < 12
+        ? "Good morning"
+        : hour < 18
+          ? "Good afternoon"
+          : "Good evening";
   return (
-    <div className="card p-4">
-      <p className="text-[11px] font-mono uppercase tracking-[0.16em] text-ink-dim mb-2">
-        Your focus
+    <div>
+      <p className="text-[11px] font-mono uppercase tracking-[0.18em] text-ink-dim">
+        $ on-ramp / home
       </p>
-      {skill.focus ? (
-        <p className="text-[17px] font-semibold text-ink mb-1 capitalize">
-          {skill.focus}
-        </p>
-      ) : (
-        <p className="text-[15px] text-ink-mute mb-1">Still learning your style</p>
-      )}
-      <p className="text-[12px] text-ink-dim mb-2.5 capitalize">{skill.comfort}</p>
-      {skill.topLanguages.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
-          {skill.topLanguages.slice(0, 4).map((l) => (
-            <span key={l} className="chip text-[11px] capitalize">
-              {l}
-            </span>
-          ))}
-        </div>
-      )}
+      <h1 className="mt-2 text-2xl sm:text-3xl font-semibold tracking-tight">
+        {part}
+        {name ? (
+          <>
+            , <span className="text-gradient-green">{name}</span>
+          </>
+        ) : null}
+        .
+      </h1>
+      <p className="mt-2 text-[15px] text-ink-mute">
+        What do you want to work on today? Describe it in a sentence.
+      </p>
     </div>
   );
 }
 
-function SavedCard({
-  count,
-  recent
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-dim">
+      {children}
+    </p>
+  );
+}
+
+function SkillCard({
+  focus,
+  comfort,
+  topLanguages,
+  strengths
 }: {
-  count: number;
-  recent: { issueKey: string; title: string; owner: string; name: string; number: number }[];
+  focus: string | null;
+  comfort: string;
+  topLanguages: string[];
+  strengths: string[];
 }) {
   return (
-    <Link href="/app/saved" className="card p-4 hover:border-brand/40 transition group block">
-      <p className="text-[11px] font-mono uppercase tracking-[0.16em] text-ink-dim mb-2">
-        Saved issues
+    <div className="card p-5">
+      <p className="text-[11px] font-mono uppercase tracking-[0.16em] text-ink-dim mb-3">
+        Your profile (inferred)
       </p>
-      <p className="text-[17px] font-semibold text-ink mb-1">
-        {count} {count === 1 ? "issue" : "issues"}
-      </p>
-      {recent.length > 0 ? (
-        <ul className="mt-1.5 space-y-1">
-          {recent.map((r) => (
-            <li key={r.issueKey} className="text-[12px] text-ink-mute truncate">
-              <span className="text-ink-dim font-mono">{r.owner}/{r.name}</span> {r.title}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="text-[12px] text-ink-dim">Bookmark issues to revisit them here.</p>
+      <div className="flex items-center gap-2 flex-wrap">
+        {focus && <span className="chip chip-ok capitalize">{focus}</span>}
+        <span className="chip">{comfort}</span>
+      </div>
+      {topLanguages.length > 0 && (
+        <div className="mt-4">
+          <p className="text-[12px] text-ink-dim mb-1.5">Top languages</p>
+          <div className="flex flex-wrap gap-1.5">
+            {topLanguages.slice(0, 5).map((l) => (
+              <span key={l} className="chip text-[11px] capitalize">
+                {l}
+              </span>
+            ))}
+          </div>
+        </div>
       )}
+      {strengths.length > 0 && (
+        <p className="mt-4 text-[12px] text-ink-mute leading-relaxed">
+          {strengths.join(" · ")}
+        </p>
+      )}
+      <p className="mt-3 text-[11px] text-ink-dim">
+        Based on what you save and view. The more you use On-Ramp, the sharper
+        this gets.
+      </p>
+    </div>
+  );
+}
+
+function ContributionCard({
+  mergedPrCount,
+  openPrCount,
+  recent,
+  login
+}: {
+  mergedPrCount: number;
+  openPrCount: number;
+  recent: { title: string; repo: string; url: string; mergedAt: string | null }[];
+  login: string;
+}) {
+  return (
+    <div className="card p-5">
+      <p className="text-[11px] font-mono uppercase tracking-[0.16em] text-ink-dim mb-3">
+        Your GitHub activity
+      </p>
+      <div className="flex items-baseline gap-5">
+        <div>
+          <span className="text-2xl font-semibold text-ok">
+            {mergedPrCount}
+          </span>
+          <span className="ml-1.5 text-[12px] text-ink-mute">merged PRs</span>
+        </div>
+        <div>
+          <span className="text-2xl font-semibold text-ink">{openPrCount}</span>
+          <span className="ml-1.5 text-[12px] text-ink-mute">open</span>
+        </div>
+      </div>
+      {recent.length > 0 && (
+        <div className="mt-4 space-y-1.5">
+          {recent.slice(0, 3).map((p) => (
+            <a
+              key={p.url}
+              href={p.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block text-[12.5px] text-ink-mute hover:text-ink truncate"
+            >
+              <span className="text-ink-dim font-mono text-[11px]">
+                {p.repo}
+              </span>{" "}
+              {p.title}
+            </a>
+          ))}
+        </div>
+      )}
+      <a
+        href={`https://github.com/${login}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-3 inline-block text-[11px] text-ink-dim hover:text-ink"
+      >
+        @{login} on GitHub →
+      </a>
+    </div>
+  );
+}
+
+function SavedPreviewRow({ issue }: { issue: SavedIssue }) {
+  return (
+    <Link
+      href={`/app/issues/${issue.owner}/${issue.name}/${issue.number}`}
+      className="block rounded-lg border border-bg-border bg-bg-soft/40 px-4 py-3 hover:border-ok/40 transition"
+    >
+      <div className="flex items-center gap-2">
+        <span className="text-[11px] font-mono text-ink-dim shrink-0">
+          {issue.owner}/{issue.name}
+        </span>
+        {issue.difficulty && (
+          <span className="chip text-[10px] capitalize">{issue.difficulty}</span>
+        )}
+      </div>
+      <p className="mt-1 text-[13.5px] text-ink truncate">{issue.title}</p>
     </Link>
   );
 }
 
-function ContributionsCard({
-  contributions,
-  login
-}: {
-  contributions: Awaited<ReturnType<typeof getContributionSummary>>;
-  login: string | null;
-}) {
-  if (!contributions.available) {
-    return (
-      <div className="card p-4">
-        <p className="text-[11px] font-mono uppercase tracking-[0.16em] text-ink-dim mb-2">
-          Contributions
-        </p>
-        <p className="text-[13px] text-ink-mute">
-          {login
-            ? "Sync unavailable right now."
-            : "Sign in with GitHub to see your contribution activity."}
-        </p>
-      </div>
-    );
-  }
+function EmptySaved() {
   return (
-    <div className="card p-4">
-      <p className="text-[11px] font-mono uppercase tracking-[0.16em] text-ink-dim mb-2">
-        Contributions
+    <div className="mt-3 rounded-xl border border-dashed border-bg-border p-6 text-center">
+      <p className="text-[13px] text-ink-mute">
+        No saved issues yet. Bookmark issues from search to revisit them here.
       </p>
-      <div className="flex items-baseline gap-3 mb-1">
-        <span className="text-[17px] font-semibold text-ok">
-          {contributions.mergedPrCount}
-        </span>
-        <span className="text-[12px] text-ink-mute">merged PRs</span>
-      </div>
-      <p className="text-[12px] text-ink-dim">
-        {contributions.openPrCount} open · {contributions.topLanguages.slice(0, 3).join(", ") || "—"}
-      </p>
+      <Link href="/app/search" className="mt-3 inline-flex btn btn-ghost text-xs">
+        Find your first issue →
+      </Link>
     </div>
   );
 }
 
-function DashboardSkeleton({ greeting }: { greeting: string }) {
+function DashboardSkeleton() {
   return (
-    <>
-      <div className="mb-7">
-        <h1 className="text-2xl sm:text-[28px] font-semibold tracking-[-0.01em] mb-1.5">
-          {greeting === "there" ? "Welcome back" : `Welcome back, ${greeting}`}
-          <span className="text-ok">.</span>
-        </h1>
-        <p className="text-ink-mute text-[15px] mb-5">
-          Describe what you want to work on — we&apos;ll find the right issue in seconds.
-        </p>
-        <SearchInput autoFocus={false} size="lg" rotating />
+    <div className="animate-pulse">
+      <div className="h-7 w-56 rounded bg-bg-soft" />
+      <div className="mt-3 h-4 w-72 rounded bg-bg-soft" />
+      <div className="mt-6 h-16 w-full rounded-2xl bg-bg-soft" />
+      <div className="mt-8 grid gap-5 sm:grid-cols-2">
+        <div className="h-40 rounded-xl bg-bg-soft" />
+        <div className="h-40 rounded-xl bg-bg-soft" />
       </div>
-      <div className="grid gap-4 md:grid-cols-3 mb-7">
-        {[0, 1, 2].map((i) => (
-          <div key={i} className="card p-4 animate-pulse">
-            <div className="h-3 w-20 bg-white/5 rounded mb-3" />
-            <div className="h-5 w-28 bg-white/5 rounded mb-2" />
-            <div className="h-3 w-24 bg-white/5 rounded" />
-          </div>
-        ))}
-      </div>
-    </>
+    </div>
   );
+}
+
+/* ───────────────────────── suggestions ───────────────────────── */
+
+interface Suggestion {
+  q: string;
+  label: string;
+}
+
+function buildSuggestions(
+  skill: { focus: string | null; topLanguages: string[]; comfort: string },
+  profile: {
+    skillLevel: string;
+    preferredCategories: string[];
+    preferredTechnologies: string[];
+  }
+): Suggestion[] {
+  const out: Suggestion[] = [];
+  const seen = new Set<string>();
+  const add = (q: string, label: string) => {
+    const key = q.toLowerCase();
+    if (seen.has(key) || out.length >= 5) return;
+    seen.add(key);
+    out.push({ q, label });
+  };
+
+  const level =
+    profile.skillLevel && profile.skillLevel !== "any"
+      ? profile.skillLevel
+      : skill.comfort === "experienced"
+        ? ""
+        : "beginner";
+
+  const focusCat = (skill.focus || "").replace(/-.*/, ""); // "frontend-focused" → "frontend"
+
+  // Language-driven
+  for (const lang of skill.topLanguages.slice(0, 2)) {
+    const q = [lang, level, focusCat || "", "issues"].filter(Boolean).join(" ");
+    add(q, titleCase(q));
+  }
+
+  // Preferred technologies
+  for (const tech of profile.preferredTechnologies.slice(0, 2)) {
+    const q = [tech, level, "good first issues"].filter(Boolean).join(" ");
+    add(q, titleCase(q));
+  }
+
+  // Category-driven
+  for (const cat of profile.preferredCategories.slice(0, 1)) {
+    if (cat === "any") continue;
+    const q = [level, cat, "issues"].filter(Boolean).join(" ");
+    add(q, titleCase(q));
+  }
+
+  // Sensible defaults when we know little
+  add("React beginner frontend issues", "React beginner frontend");
+  add("Python API beginner issue", "Python API beginner");
+  add("Good first issues in TypeScript", "TypeScript good first");
+  add("Documentation issues for newcomers", "Docs for newcomers");
+
+  return out.slice(0, 5);
+}
+
+function titleCase(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
 }
