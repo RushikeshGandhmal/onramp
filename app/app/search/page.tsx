@@ -14,6 +14,11 @@ import { cached } from "@/lib/cache";
 import { getUserId } from "@/lib/user";
 import { getSavedKeys, issueKey } from "@/lib/saved";
 import { recordEvent } from "@/lib/events";
+import { getProfile } from "@/lib/profile";
+import {
+  getPersonalizationSignals,
+  personalBias
+} from "@/lib/personalization";
 import type { RankedIssue, SearchResponse } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -93,8 +98,26 @@ async function Results({ q }: { q: string }) {
   // Per-user save state + behavioural signal — computed OUTSIDE the shared
   // search cache so one user's bookmarks never leak into another's results.
   let issues = response.issues;
+  let personalized = false;
   const userId = await getUserId();
   if (userId && issues.length > 0) {
+    // ── Personalized re-rank (post-cache, per-user) ─────────────
+    // The base ranking is shared/cached & query-only. We nudge it with a
+    // small personalization weight so it never overrides true relevance.
+    const profile = await getProfile(userId);
+    const signals = await getPersonalizationSignals(userId, profile);
+    if (signals.hasSignal) {
+      const withBias = issues.map((issue, idx) => ({
+        issue,
+        idx,
+        // base score is preserved; bias is bounded and weighted low (0.6)
+        adj: (issue.score ?? 0) + personalBias(issue, signals) * 0.6
+      }));
+      withBias.sort((a, b) => b.adj - a.adj || a.idx - b.idx);
+      issues = withBias.map((w) => w.issue);
+      personalized = true;
+    }
+
     const keys = issues.map((i) =>
       issueKey(i.repo.owner, i.repo.name, i.number)
     );
@@ -128,6 +151,7 @@ async function Results({ q }: { q: string }) {
         parsed={response.query}
         count={issues.length}
         meta={response.meta}
+        personalized={personalized}
       />
 
       {response.meta.notice && (
@@ -239,13 +263,15 @@ function SearchStatusBar({
   parsed,
   count,
   loading,
-  meta
+  meta,
+  personalized
 }: {
   query: string;
   parsed?: SearchResponse["query"];
   count?: number;
   loading?: boolean;
   meta?: SearchResponse["meta"];
+  personalized?: boolean;
 }) {
   const resolved = meta?.resolvedRepos || [];
   return (
@@ -305,6 +331,11 @@ function SearchStatusBar({
                 <span>Heuristic explanations</span>
               )}
             </p>
+            {personalized && (
+              <p className="mt-0.5">
+                <span className="text-brand-soft">★ Personalized for you</span>
+              </p>
+            )}
           </>
         )}
       </div>
