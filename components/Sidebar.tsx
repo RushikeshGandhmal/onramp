@@ -14,31 +14,28 @@ type NavItem = {
 
 const NAV: NavItem[] = [
   {
+    label: "Home",
+    href: "/app",
+    icon: <HomeIcon />,
+    active: (p) => p === "/app"
+  },
+  {
     label: "Find issues",
     href: "/app/search",
     icon: <SearchIcon />,
     active: (p) => p.startsWith("/app/search") || p.startsWith("/app/issues")
   },
   {
-    label: "Saved searches",
-    href: "#",
+    label: "Saved issues",
+    href: "/app/saved",
     icon: <BookmarkIcon />,
-    badge: "Soon",
-    disabled: true
-  },
-  {
-    label: "My contributions",
-    href: "#",
-    icon: <TrophyIcon />,
-    badge: "Soon",
-    disabled: true
+    active: (p) => p.startsWith("/app/saved")
   },
   {
     label: "Profile",
-    href: "#",
+    href: "/app/profile",
     icon: <UserIcon />,
-    badge: "Soon",
-    disabled: true
+    active: (p) => p.startsWith("/app/profile")
   }
 ];
 
@@ -226,11 +223,11 @@ function BookmarkIcon() {
   );
 }
 
-function TrophyIcon() {
+function HomeIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
       <path
-        d="M7 4h10v4a5 5 0 1 1-10 0V4ZM4 5h3v3H5a1 1 0 0 1-1-1V5Zm16 0v2a1 1 0 0 1-1 1h-2V5h3ZM10 14h4l-1 4h-2l-1-4Zm-2 7h8"
+        d="M4 11.5 12 4l8 7.5M6 10v9h12v-9"
         stroke="currentColor"
         strokeWidth="1.7"
         strokeLinejoin="round"

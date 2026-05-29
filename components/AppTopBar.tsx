@@ -83,12 +83,12 @@ export function AppTopBar({
 
 function MobileDrawer({ onClose }: { onClose: () => void }) {
   const items: { label: string; href: string; disabled?: boolean }[] = [
+    { label: "Home", href: "/app" },
     { label: "Find issues", href: "/app/search" },
-    { label: "Saved searches", href: "#", disabled: true },
-    { label: "My contributions", href: "#", disabled: true },
-    { label: "Profile", href: "#", disabled: true },
+    { label: "Saved issues", href: "/app/saved" },
+    { label: "Profile", href: "/app/profile" },
     { label: "Status", href: "/status" },
-    { label: "Home", href: "/" }
+    { label: "Landing page", href: "/" }
   ];
   return (
     <div className="md:hidden border-t border-bg-border bg-bg-soft/95 backdrop-blur-xl">
@@ -121,6 +121,9 @@ function MobileDrawer({ onClose }: { onClose: () => void }) {
 function derivedTitle(path: string): string {
   if (path.startsWith("/app/issues/")) return "Issue detail";
   if (path.startsWith("/app/search")) return "Find issues";
+  if (path.startsWith("/app/saved")) return "Saved issues";
+  if (path.startsWith("/app/profile")) return "Profile";
+  if (path === "/app") return "Home";
   if (path.startsWith("/app")) return "Workspace";
   return "On-Ramp";
 }
@@ -128,6 +131,9 @@ function derivedTitle(path: string): string {
 function crumb(path: string): string {
   if (path.startsWith("/app/issues/")) return "issue";
   if (path.startsWith("/app/search")) return "find-issue";
+  if (path.startsWith("/app/saved")) return "saved";
+  if (path.startsWith("/app/profile")) return "profile";
+  if (path === "/app") return "home";
   if (path.startsWith("/app")) return "workspace";
   return "home";
 }
