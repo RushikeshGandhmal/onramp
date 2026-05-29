@@ -1,10 +1,17 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DifficultyBadge } from "@/components/DifficultyBadge";
+import { IntelligenceSignals } from "@/components/IntelligenceSignals";
+import { SaveButton } from "@/components/SaveButton";
 import { fetchIssueDetail } from "@/lib/github";
 import { parseQuery } from "@/lib/query-parser";
 import { rankIssue } from "@/lib/ranker";
+import { computeIntelligence } from "@/lib/intelligence";
 import { explainIssue, hasAIConfigured } from "@/lib/ai";
+import { getUserId } from "@/lib/user";
+import { recordEvent } from "@/lib/events";
+import { getSavedKeys, issueKey } from "@/lib/saved";
+import type { ToggleSaveInput } from "@/app/actions/saved";
 
 export const dynamic = "force-dynamic";
 
@@ -29,8 +36,48 @@ export default async function AppIssueDetailPage({
   const parsed = parseQuery(q || `${issue.repo.primaryLanguage} ${issue.repo.category}`);
   const rank = rankIssue(issue, parsed);
   const ai = await explainIssue(issue, parsed, rank, "detail");
+  const intel = computeIntelligence(issue);
 
   const backHref = q ? `/app/search?q=${encodeURIComponent(q)}` : "/app/search";
+
+  // Per-user state + behavioural signal — fully guarded (no-op without DB/auth).
+  const key = issueKey(issue.repo.owner, issue.repo.name, issue.number);
+  const userId = await getUserId();
+  let initialSaved = false;
+  if (userId) {
+    const [savedSet] = await Promise.all([
+      getSavedKeys(userId, [key]),
+      recordEvent(userId, {
+        eventType: "view",
+        issueKey: key,
+        owner: issue.repo.owner,
+        name: issue.repo.name,
+        category: issue.repo.category ?? null,
+        difficulty: ai.difficulty,
+        languages: issue.repo.primaryLanguage
+          ? [issue.repo.primaryLanguage.toLowerCase()]
+          : [],
+        technologies: parsed.technologies ?? [],
+        query: q || null
+      })
+    ]);
+    initialSaved = savedSet.has(key);
+  }
+
+  const saveInput: ToggleSaveInput = {
+    owner: issue.repo.owner,
+    name: issue.repo.name,
+    number: issue.number,
+    title: issue.title,
+    htmlUrl: issue.htmlUrl,
+    repoLanguage: issue.repo.primaryLanguage ?? null,
+    category: issue.repo.category ?? null,
+    difficulty: ai.difficulty,
+    labels: issue.labels.slice(0, 12),
+    tags: rank.tags?.slice(0, 8) ?? [],
+    aiSummary: ai.summary,
+    technologies: parsed.technologies ?? []
+  };
 
   return (
     <main className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8 animate-fade-in">
@@ -68,7 +115,10 @@ export default async function AppIssueDetailPage({
             </span>
           ))}
         </div>
-        <div className="mt-5 flex gap-2">
+
+        <IntelligenceSignals intel={intel} detailed className="mt-3" />
+
+        <div className="mt-5 flex flex-wrap gap-2">
           <a
             href={issue.htmlUrl}
             target="_blank"
@@ -77,6 +127,7 @@ export default async function AppIssueDetailPage({
           >
             Open on GitHub <ExternalIcon />
           </a>
+          <SaveButton input={saveInput} initialSaved={initialSaved} variant="full" className="text-sm" />
           <a
             href={`https://github.com/${issue.repo.owner}/${issue.repo.name}`}
             target="_blank"
