@@ -1,12 +1,22 @@
 import { Sidebar } from "@/components/Sidebar";
 import { AppTopBar } from "@/components/AppTopBar";
+import { ensureUser } from "@/lib/user";
 
 export const metadata = {
   title: "Workspace",
   description: "Find your next open-source issue."
 };
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+export default async function AppLayout({
+  children
+}: {
+  children: React.ReactNode;
+}) {
+  // Single guaranteed entry point for the user mirror row. Every /app/* route
+  // renders through here, so saved issues / events can safely FK to users.id.
+  // Degrades gracefully: no DB → no-op, not signed in → null.
+  await ensureUser();
+
   return (
     <div className="min-h-screen flex bg-github">
       <Sidebar />

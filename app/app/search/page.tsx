@@ -11,6 +11,9 @@ import { computeIntelligence } from "@/lib/intelligence";
 import { explainIssuesBatch, hasAIConfigured } from "@/lib/ai";
 import { rateLimit, clientIdFromHeaders } from "@/lib/rate-limit";
 import { cached } from "@/lib/cache";
+import { getUserId } from "@/lib/user";
+import { getSavedKeys, issueKey } from "@/lib/saved";
+import { recordEvent } from "@/lib/events";
 import type { RankedIssue, SearchResponse } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -87,12 +90,43 @@ async function Results({ q }: { q: string }) {
 
   const response = await runSearch(q);
 
+  // Per-user save state + behavioural signal — computed OUTSIDE the shared
+  // search cache so one user's bookmarks never leak into another's results.
+  let issues = response.issues;
+  const userId = await getUserId();
+  if (userId && issues.length > 0) {
+    const keys = issues.map((i) =>
+      issueKey(i.repo.owner, i.repo.name, i.number)
+    );
+    const savedSet = await getSavedKeys(userId, keys);
+    if (savedSet.size > 0) {
+      issues = issues.map((i) => ({
+        ...i,
+        saved: savedSet.has(issueKey(i.repo.owner, i.repo.name, i.number))
+      }));
+    }
+    void recordEvent(userId, {
+      eventType: "search",
+      query: q,
+      category:
+        response.query.category !== "any" ? response.query.category : null,
+      difficulty:
+        response.query.skillLevel === "beginner"
+          ? "easy"
+          : response.query.skillLevel === "advanced"
+          ? "hard"
+          : null,
+      languages: response.query.languages,
+      technologies: response.query.technologies
+    });
+  }
+
   return (
     <section className="mt-8">
       <SearchStatusBar
         query={q}
         parsed={response.query}
-        count={response.issues.length}
+        count={issues.length}
         meta={response.meta}
       />
 
@@ -102,7 +136,7 @@ async function Results({ q }: { q: string }) {
         </div>
       )}
 
-      {response.issues.length === 0 ? (
+      {issues.length === 0 ? (
         <EmptyState
           query={q}
           resolvedRepos={response.meta.resolvedRepos}
@@ -110,7 +144,7 @@ async function Results({ q }: { q: string }) {
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {response.issues.map((issue) => (
+          {issues.map((issue) => (
             <IssueCard key={issue.id} issue={issue} />
           ))}
         </div>

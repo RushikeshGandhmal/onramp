@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { RankedIssue } from "@/lib/types";
 import { DifficultyBadge } from "./DifficultyBadge";
+import { SaveButton } from "./SaveButton";
+import { IntelligenceSignals } from "./IntelligenceSignals";
 
 function relativeTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -17,6 +19,20 @@ function relativeTime(iso: string): string {
 
 export function IssueCard({ issue }: { issue: RankedIssue }) {
   const detailHref = `/app/issues/${issue.repo.owner}/${issue.repo.name}/${issue.number}?q=`;
+  const saveInput = {
+    owner: issue.repo.owner,
+    name: issue.repo.name,
+    number: issue.number,
+    title: issue.title,
+    htmlUrl: issue.htmlUrl,
+    repoLanguage: issue.repo.primaryLanguage,
+    category: issue.repo.category,
+    difficulty: issue.ai.difficulty,
+    labels: issue.labels,
+    tags: issue.tags,
+    aiSummary: issue.ai.summary,
+    technologies: issue.repo.topics
+  };
   return (
     <article className="card group p-5 animate-slide-up">
       <header className="flex items-start justify-between gap-3 mb-2">
@@ -37,12 +53,17 @@ export function IssueCard({ issue }: { issue: RankedIssue }) {
             </h3>
           </Link>
         </div>
-        <DifficultyBadge difficulty={issue.ai.difficulty} />
+        <div className="flex items-center gap-2 shrink-0">
+          <DifficultyBadge difficulty={issue.ai.difficulty} />
+          <SaveButton input={saveInput} initialSaved={Boolean(issue.saved)} />
+        </div>
       </header>
 
       <p className="text-sm text-ink-mute leading-relaxed line-clamp-3 mb-3">
         {issue.ai.summary}
       </p>
+
+      <IntelligenceSignals intel={issue.intelligence} className="mb-3" />
 
       <div className="flex flex-wrap items-center gap-1.5 mb-4">
         {issue.tags.slice(0, 4).map((t) => (
