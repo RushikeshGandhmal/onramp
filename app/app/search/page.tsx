@@ -7,6 +7,7 @@ import { ResultsSkeleton } from "@/components/Skeletons";
 import { parseQuery } from "@/lib/query-parser";
 import { fetchIssues } from "@/lib/github";
 import { rankAndFilter } from "@/lib/ranker";
+import { computeIntelligence } from "@/lib/intelligence";
 import { explainIssuesBatch, hasAIConfigured } from "@/lib/ai";
 import { rateLimit, clientIdFromHeaders } from "@/lib/rate-limit";
 import { cached } from "@/lib/cache";
@@ -141,7 +142,8 @@ async function runSearch(q: string): Promise<SearchResponse> {
 
     const finalIssues: RankedIssue[] = ranked.map((r, i) => ({
       ...r,
-      ai: aiExplanations[i]
+      ai: aiExplanations[i],
+      intelligence: computeIntelligence(r)
     }));
 
     return {
