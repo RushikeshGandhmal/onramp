@@ -65,11 +65,27 @@ export interface AIExplanation {
   source: "ai" | "heuristic";
 }
 
+/**
+ * Issue intelligence — heuristic signals computed from issue/repo metadata.
+ * These are deterministic estimates (NOT AI hallucinations) used to help a
+ * contributor decide whether an issue is worth their time.
+ */
+export interface IssueIntelligence {
+  stale: boolean; // no meaningful activity in a long while
+  staleDays: number; // days since last update
+  maintainerResponsiveness: "high" | "medium" | "low" | "unknown";
+  beginnerFriendliness: "high" | "medium" | "low";
+  acceptanceLikelihood: "high" | "medium" | "low";
+  notes: string[]; // short human-readable explanations of the above
+}
+
 export interface RankedIssue extends RawIssue {
   score: number;
   reasons: string[];
   tags: string[];
   ai: AIExplanation;
+  intelligence: IssueIntelligence;
+  saved?: boolean; // set per-user at render time
 }
 
 export interface SearchResponse {
@@ -83,5 +99,80 @@ export interface SearchResponse {
     rateLimited?: boolean;
     notice?: string;
     resolvedRepos?: string[]; // user-named repos we actually scoped the search to
+    personalized?: boolean; // ranking was biased by the user's signals
   };
+}
+
+// ─── Phase 2: identity, profile, saved, personalization ───────────────────
+
+export interface UserProfile {
+  userId: string;
+  preferredTechnologies: string[];
+  preferredLanguages: string[];
+  preferredCategories: Category[];
+  contributionInterests: string[];
+  skillLevel: SkillLevel;
+  inferredFocus: string | null;
+  onboarded: boolean;
+}
+
+export interface SavedIssue {
+  id: string;
+  issueKey: string; // "owner/name#number"
+  owner: string;
+  name: string;
+  number: number;
+  title: string;
+  htmlUrl: string;
+  repoLanguage: string | null;
+  category: string | null;
+  difficulty: string | null;
+  labels: string[];
+  tags: string[];
+  aiSummary: string | null;
+  note: string | null;
+  status: "saved" | "in_progress" | "done";
+  savedAt: string;
+}
+
+export type IssueEventType =
+  | "view"
+  | "save"
+  | "unsave"
+  | "open_github"
+  | "search";
+
+/**
+ * Aggregated signals derived from a user's events + explicit profile.
+ * Drives personalized recommendations and inferred skill focus.
+ */
+export interface PersonalizationSignals {
+  technologies: Record<string, number>; // weighted counts
+  languages: Record<string, number>;
+  categories: Record<string, number>;
+  difficulties: Record<string, number>;
+  topTechnologies: string[];
+  topLanguages: string[];
+  topCategories: Category[];
+  preferredDifficulty: Difficulty | null;
+  eventCount: number;
+  hasSignal: boolean;
+}
+
+/**
+ * Minimal GitHub contribution summary (Phase 2 keeps this lightweight).
+ */
+export interface ContributionSummary {
+  login: string;
+  mergedPrCount: number;
+  openPrCount: number;
+  recentMergedPrs: {
+    title: string;
+    repo: string;
+    url: string;
+    mergedAt: string | null;
+  }[];
+  topLanguages: string[];
+  fetchedAt: string;
+  available: boolean; // false when token/data unavailable
 }
