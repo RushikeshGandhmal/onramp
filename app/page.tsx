@@ -1089,9 +1089,32 @@ function Footer() {
             />
           </div>
         </div>
-        <div className="mt-10 pt-6 border-t border-bg-border flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-ink-dim">
-          <p>© {new Date().getFullYear()} On-Ramp. Made for open source.</p>
-          <p>Live data via GitHub API. Not affiliated with GitHub.</p>
+        <div className="mt-10 pt-6 border-t border-bg-border flex flex-col gap-3">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-ink-dim">
+            <p>© {new Date().getFullYear()} On-Ramp. Made for open source.</p>
+            <p>Live data via GitHub API. Not affiliated with GitHub.</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 text-[11px] text-ink-dim">
+            <span className="chip chip-warn">In development</span>
+            <span>Preview builds:</span>
+            <a
+              href="https://onramp-seven.vercel.app"
+              target="_blank"
+              rel="noreferrer"
+              className="text-ink-mute hover:text-ink underline underline-offset-2"
+            >
+              onramp-seven.vercel.app
+            </a>
+            <span aria-hidden>·</span>
+            <a
+              href="https://rivaly-alpha.vercel.app"
+              target="_blank"
+              rel="noreferrer"
+              className="text-ink-mute hover:text-ink underline underline-offset-2"
+            >
+              rivaly-alpha.vercel.app
+            </a>
+          </div>
         </div>
       </div>
     </footer>

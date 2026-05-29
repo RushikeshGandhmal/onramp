@@ -43,6 +43,9 @@ vercel env add NEXT_PUBLIC_SITE_URL production       # https://on-ramp.dev
 # Sign-in / Sign-up (Clerk) — REQUIRED (search is gated behind auth)
 vercel env add NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY production preview
 vercel env add CLERK_SECRET_KEY production preview
+
+# Database (Neon Postgres) — REQUIRED for Phase 2 (profiles, saved issues, personalization)
+vercel env add DATABASE_URL production preview
 ```
 
 > Create a Clerk application at https://dashboard.clerk.com
@@ -50,6 +53,15 @@ vercel env add CLERK_SECRET_KEY production preview
 > — Enable GitHub + Email sign-in methods in the Clerk dashboard.
 > — When you promote to a "Production instance" in Clerk, swap the
 >   `pk_test_…` / `sk_test_…` keys for the `pk_live_…` / `sk_live_…` pair.
+> — For GitHub contribution sync, the GitHub OAuth connection in Clerk
+>   must request the `read:user` scope (default is fine for public PRs).
+
+> Create a Neon database at https://neon.tech (free tier).
+> — Copy the **pooled** connection string (ends with `-pooler`).
+> — `DATABASE_URL` is **optional**: without it the app still runs (search,
+>   AI, intelligence all work), but profiles, saved issues, and
+>   personalization silently no-op. With it, Phase 2 features turn on.
+> — After setting it, run the schema push once: `npm run db:push`
 
 ### 1c. Deploy
 ```bash
@@ -189,15 +201,24 @@ GitHub → Settings → Branches → Add rule for `main`:
 | Playwright E2E smoke tests | `tests/e2e/smoke.spec.ts` |
 | GitHub Actions CI | `.github/workflows/ci.yml` |
 | SVG favicon | `public/favicon.svg` |
+| GitHub OAuth sign-in (Clerk) | `middleware.ts`, `app/sign-in`, `app/sign-up` |
+| Neon Postgres + Drizzle (guarded) | `lib/db/schema.ts`, `lib/db/client.ts` |
+| User profiles | `lib/profile.ts`, `app/app/profile` |
+| Saved issues (bookmarks) | `lib/saved.ts`, `app/app/saved`, `components/SaveButton.tsx` |
+| Personalized re-rank | `lib/personalization.ts` |
+| Issue intelligence (staleness, responsiveness, fit) | `lib/intelligence.ts` |
+| AI skill understanding | `lib/skills.ts` |
+| GitHub contribution sync | `lib/contributions.ts` |
+| Personalized dashboard | `app/app/page.tsx` |
 
 ## What's Intentionally Out of Scope
 
 These are planned for later phases — see the Roadmap section on the landing page:
-- User accounts / auth
-- Saved searches, profiles, contribution streaks
-- Recruiter feed
-- Email digests / notifications
-- Repo setup automation
+- Recruiter marketplace / talent feed
+- Public contributor ranking systems
+- Messaging / social features
+- Job board / payments
+- Repo setup automation / CLI
 
 ---
 
